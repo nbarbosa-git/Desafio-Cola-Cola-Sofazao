@@ -17,9 +17,9 @@ def week_of_month(data):
 
 
 
-def next_holiday(df, last_holiday):
+def next_holiday(df):
 	holidays= df[df.holidays > 0 ].index
-	last_holiday =  pd.to_datetime(last_holiday, format='%Y/%m/%d') #1o feriado após a série histórica
+	last_holiday =  pd.to_datetime('2019-09-08', format='%Y/%m/%d') #1o feriado após a série histórica
 	holidays_list = holidays.to_list()
 	holidays_list.append(last_holiday)
 
@@ -31,4 +31,4 @@ def next_holiday(df, last_holiday):
 	  gap = (holidays_list[0] - ind).days
 	  delta.append(int(round(gap/7,0)))
 
-	  return delta
+	return delta

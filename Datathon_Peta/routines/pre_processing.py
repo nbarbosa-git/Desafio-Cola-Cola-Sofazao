@@ -27,9 +27,9 @@ def pre_proc(df_vendas, df_macro):
     df_macro = pre_macro(df_macro)
     df = merge_df(df_vendas, df_macro)
     
-    holidays = get_holidays()
-    last_holiday = filter(lambda x: x>df.index[-1], holidays)[0]
-    df['Next_holiday'] = next_holiday(df, last_holiday)
+    #holidays = get_holidays()
+    #last_holiday = filter(lambda x: x>df.index[-1], holidays)[0]
+    df['Next_holiday'] = next_holiday(df)
     
     #keep_cols
     return df
