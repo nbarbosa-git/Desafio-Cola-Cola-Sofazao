@@ -39,13 +39,13 @@ def pre_vendas(df_vendas):
     df_vendas.rename(columns={'Data.1':'Datetime'}, inplace=True)
     df_vendas['Datetime'] = pd.to_datetime(df_vendas['Datetime'], format='%d/%m/%Y')
 
-	#usa a funcao week_of_month de adjust_datime
+	  #usa a funcao week_of_month de adjust_datime
     df_vendas['Week_Month'] = df_vendas['Datetime'].map(week_of_month)
 
-	#cagado
-    df_vendas['Week_Year'] = ([i for i in range(1,53)]*5)[0:242]
+    years = math.ceil(df_vendas.shape[0]/53)
+    df_vendas['Week_Year'] = ([i for i in range(1,53)]*years)[0:df_vendas.shape[0]]
 
-	#decidir
+	  #colunas cortadas
     drop_cols = ['Data', 'Month_445', 'Week_445', 'weekend', 'work_day']
     df_vendas.drop(labels=drop_cols, axis=1, inplace=True)
 
