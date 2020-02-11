@@ -19,6 +19,7 @@ import sys
 sys.path.append('../libraries/')
 
 import pandas as pd
+import math
 from adjust_datetime import week_of_month
 from adjust_datatype import PT_BR_string_to_numeric
 
