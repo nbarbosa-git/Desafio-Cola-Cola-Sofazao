@@ -5,7 +5,7 @@
 #    Coleção de funções para criar gráficos
 ##########
 
-import pandas as pd
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -13,10 +13,9 @@ import seaborn as sns
 #configuracao basica dos graficos
 def setup_graphics():
   # Plotting options
-  %matplotlib inline
-  mpl.style.use('ggplot')
-  sns.set(style='whitegrid')
 
+
+  sns.set(style='whitegrid')
   plt.rcParams['savefig.dpi'] = 75
   plt.rcParams['figure.autolayout'] = False
   plt.rcParams['figure.figsize'] = 10, 6
