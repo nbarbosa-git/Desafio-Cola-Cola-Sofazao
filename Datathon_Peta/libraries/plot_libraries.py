@@ -2,12 +2,13 @@
 ##########
 # File: plot_libraries.py
 # Description:
-#    Coleção de funções para criar gráficos
+#    Coleção de funções para criar gráficos!
 ##########
 
 
-import matplotlib.pyplot as plt
+from matplotlib import pyplot
 import seaborn as sns
+import pandas as pd
 
 
 #configuracao basica dos graficos
@@ -16,40 +17,53 @@ def setup_graphics():
 
 
   sns.set(style='whitegrid')
-  plt.rcParams['savefig.dpi'] = 75
-  plt.rcParams['figure.autolayout'] = False
-  plt.rcParams['figure.figsize'] = 10, 6
-  plt.rcParams['axes.labelsize'] = 18
-  plt.rcParams['axes.titlesize'] = 20
-  plt.rcParams['font.size'] = 16
-  plt.rcParams['lines.linewidth'] = 2.0
-  plt.rcParams['lines.markersize'] = 8
-  plt.rcParams['legend.fontsize'] = 14
+  pyplot.rcParams['savefig.dpi'] = 75
+  pyplot.rcParams['figure.autolayout'] = False
+  pyplot.rcParams['figure.figsize'] = 10, 6
+  pyplot.rcParams['axes.labelsize'] = 18
+  pyplot.rcParams['axes.titlesize'] = 20
+  pyplot.rcParams['font.size'] = 16
+  pyplot.rcParams['lines.linewidth'] = 2.0
+  pyplot.rcParams['lines.markersize'] = 8
+  pyplot.rcParams['legend.fontsize'] = 14
 
 
-
+def seasonal_plot(df, ini, fim, frq):
+  years = df.index.year.unique()
+  groups = df[ini:fim].groupby(pd.Grouper(freq=frq))
+  years = pd.DataFrame()
+  pyplot.figure()
+  i = 1
+  n_groups = len(groups)
+  for name, group in groups:
+    pyplot.subplot((n_groups*100) + 10 + i)
+    i += 1
+    pyplot.plot(group)
+  pyplot.tight_layout()
+  pyplot.show()
 
 #plot graficos EDA
-  def plot_var(df, y_axis, stack, x_axis1, x_axis2, agg='Mean'):
+def plot_var(df, y_axis, stack, x_axis1, x_axis2, agg='Mean'):
 
     #-----------------------------
-    plt.rcParams['savefig.dpi'] = 75
-    plt.rcParams['figure.autolayout'] = False
-    plt.rcParams['figure.figsize'] = 10, 6
-    plt.rcParams['axes.labelsize'] = 8
-    plt.rcParams['axes.titlesize'] = 12
-    plt.rcParams['font.size'] = 8
-    plt.rcParams['lines.linewidth'] = 2.5
-    plt.rcParams['lines.markersize'] = 8
-    plt.rcParams['legend.fontsize'] = 8
-    plt.rcParams['xtick.labelsize'] = 8
-    plt.rcParams['ytick.labelsize'] = 8
+    sns.set(style='whitegrid')
+    pyplot.rcParams['savefig.dpi'] = 75
+    pyplot.rcParams['figure.autolayout'] = False
+    pyplot.rcParams['figure.figsize'] = 10, 6
+    pyplot.rcParams['axes.labelsize'] = 8
+    pyplot.rcParams['axes.titlesize'] = 12
+    pyplot.rcParams['font.size'] = 8
+    pyplot.rcParams['lines.linewidth'] = 2.5
+    pyplot.rcParams['lines.markersize'] = 8
+    pyplot.rcParams['legend.fontsize'] = 8
+    pyplot.rcParams['xtick.labelsize'] = 8
+    pyplot.rcParams['ytick.labelsize'] = 8
     #-----------------------------
 
 
     #SETUP GRAPHIC SPACE (1X2)
-    f, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12,3), dpi=90)
-    cmap = plt.cm.inferno
+    f, (ax1, ax2) = pyplot.subplots(nrows=1, ncols=2, figsize=(12,3), dpi=90)
+    cmap = pyplot.cm.inferno
 
 
     #DATA
@@ -92,6 +106,6 @@ def setup_graphics():
     ax2.set_title(y_axis + ' by ' + x_axis2)
     ax2.set_xlabel(x_axis2)
 
-    plt.tight_layout()
+    pyplot.tight_layout()
     return data
     #return df.groupby(x_axis2)[y_axis].describe()
