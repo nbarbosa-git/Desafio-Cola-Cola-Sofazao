@@ -28,19 +28,7 @@ def setup_graphics():
   pyplot.rcParams['legend.fontsize'] = 14
 
 
-def seasonal_plot(df, ini, fim, frq):
-  years = df.index.year.unique()
-  groups = df[ini:fim].groupby(pd.Grouper(freq=frq))
-  years = pd.DataFrame()
-  pyplot.figure()
-  i = 1
-  n_groups = len(groups)
-  for name, group in groups:
-    pyplot.subplot((n_groups*100) + 10 + i)
-    i += 1
-    pyplot.plot(group)
-  pyplot.tight_layout()
-  pyplot.show()
+
 
 #plot graficos EDA
 def plot_var(df, y_axis, stack, x_axis1, x_axis2, agg='Mean'):
