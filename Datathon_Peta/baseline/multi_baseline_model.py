@@ -72,83 +72,67 @@ def summarize_scores(name, score, scores):
 
 
 # evaluate a single model
-def evaluate_model(model_func, train, test):
+def evaluate_model(model_func, train, test, pos):
 	# history is a list of weekly data
 	history = [x for x in train]
 	# walk-forward validation over each week
 	predictions = list()
 	for i in range(len(test)):
 		# predict the week
-		yhat_sequence = model_func(history)
+		yhat_sequence = model_func(history, pos)
 		# store the predictions
 		predictions.append(yhat_sequence)
 		# get real observation and add to history for predicting the next week
 		history.append(test[i, :])
 	predictions = array(predictions)
 	# evaluate predictions days for each week
-	score, scores = evaluate_forecasts(test[:, :, 0], predictions)
+	score, scores = evaluate_forecasts(test[:, :, pos], predictions)
 	return score, scores
 
 
-# daily persistence model
-def daily_persistence(history):
-	# get the data for the prior week
-	last_week = history[-1]
-	# get the total active power for the last day
-	value = last_week[-1, 0]
-	# prepare 7 day forecast
-	forecast = [value for _ in range(13)]
-	return forecast
-
-
-# weekly persistence model
-def weekly_persistence(history):
-	# get the data for the prior week
-	last_week = history[-1]
-	return last_week[:, 0]
 
 
 # week one year ago persistence model
-def week_one_year_ago_persistence(history):
+def week_one_year_ago_persistence(history, pos):
 	# get the data for the prior week
 	last_week = history[-4]
-	return last_week[:, 0]
+	return last_week[:, pos]
+
 
 
 
 
 def baseline_multi(dataset):
-    # split into train and test
-    train, test = split_dataset(dataset.values)
-    
+	# split into train and test
+  train, test = split_dataset(dataset.values)
+  for pos,col in enumerate(dataset.columns[1:5]):
+
     # define the names and functions for the models we wish to evaluate
     models = dict()
-    models['weekly'] = daily_persistence
-    models['quarterly'] = weekly_persistence
-    models['yearly'] = week_one_year_ago_persistence
-    
-    
+    name = "Yearly_" + str(col)
+    models[name] = week_one_year_ago_persistence
+    pos+=1
+    	
     # evaluate each model
     weeks = ["Wk" + str(i) for i in range(1,14)]
     model_score = {}
-    
+    	
     for name, func in models.items():
-    	# evaluate and get scores
-    	score, scores = evaluate_model(func, train, test)
-    	# summarize scores
-    	summarize_scores(name, score, scores)
-    	model_score[name] = score
-    	# plot scores
-    	pyplot.plot(weeks, scores, marker='o', label=name)
-
-    # show plot
-    pyplot.legend()
-    pyplot.show()
-
-    return model_score
-
+      # evaluate and get scores
+      score, scores = evaluate_model(func, train, test, pos)
+      # summarize scores
+      summarize_scores(name, score, scores)
+      model_score[name] = score
+      # plot scores
+      pyplot.plot(weeks, scores, marker='o', label=name)
+    
+      # show plot
+  pyplot.legend()
+  pyplot.show()
+  return model_score
 
 
+'''
 
 if __name__ == '__main__':
     ###### Setup
@@ -158,3 +142,4 @@ if __name__ == '__main__':
                        parse_dates=['Datetime'],
                        index_col=['Datetime'])
     model_scores = baseline_multi(dataset)
+'''
