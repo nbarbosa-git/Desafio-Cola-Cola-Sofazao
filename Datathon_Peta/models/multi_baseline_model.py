@@ -68,7 +68,7 @@ def evaluate_forecasts(actual, predicted):
 # summarize scores
 def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
-	#print('%s: [%.2f] %s' % (name, score, s_scores))
+	print('%s: [%.2f] %s' % (name, score, s_scores))
 
 
 # evaluate a single model
