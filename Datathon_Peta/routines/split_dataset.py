@@ -25,6 +25,12 @@ X = read_csv(REPO_URL + 'processedDF.csv', sep=',',
                    parse_dates=['Datetime'],
                    index_col=['Datetime'])
 
+#reorder columns
+X = X[['Total', 'SM', 'ROUTE', 'INDIRETOS',  'OUTROS',
+ 'Day_gregoriano', 'Week_Month', 'Week_Year',
+ 'Month_gregoriano', 'Year', 'holidays', 'Next_holiday',
+ 'temperatura', 'Ajuste_ipca', 'PMC',
+  'Massa.Renda', 'Renda', 'Desemprego']]
 
 
 
@@ -34,3 +40,6 @@ X_test = X.iloc[-13:, :]
 
 X_train.to_csv(r'trainDF.csv', header=True)
 X_test.to_csv(r'testDF.csv', header=True)
+
+
+

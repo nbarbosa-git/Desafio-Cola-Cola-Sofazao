@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb 12 17:37:00 2020
+Created on Wed Feb 12 22:02:59 2020
 
 @author: nicholasrichers
 """
 
+
 ##########
-# File: pre_processing_vendas.py
+# File: multi_baseline_model.py
 # Description:
-#    Test Harness Modelo Baseline 1
+#    Test Harness Modelo Baseline Multi
 ##########
 
 
@@ -116,7 +117,7 @@ def week_one_year_ago_persistence(history):
 
 
 
-def baseline(dataset):
+def baseline_multi(dataset):
     # split into train and test
     train, test = split_dataset(dataset.values)
     
@@ -148,7 +149,7 @@ def baseline(dataset):
 
 
 
-"""
+
 if __name__ == '__main__':
     ###### Setup
     REPO_URL = 'https://raw.githubusercontent.com/nicholasrichers/Desafio-Cola-Cola-Sofazao/master/Datathon_Peta/datasets/'
@@ -156,5 +157,4 @@ if __name__ == '__main__':
                        infer_datetime_format=True,
                        parse_dates=['Datetime'],
                        index_col=['Datetime'])
-    model_scores = baseline(dataset)
- """
+    model_scores = baseline_multi(dataset)
