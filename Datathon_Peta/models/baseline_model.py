@@ -25,13 +25,15 @@ from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot
 
 
+from class_transform_dataset import Transform_Dataset
+
 from numpy import mean
 def mean_absolute_percentage_error(y_true, y_pred): 
     return mean(abs((y_true - y_pred) / y_true)) * 100
 
 
 def split_dataset(data):
-	# split into standard weeks
+	# split into standard quarters
 	train, test = data[8:-52], data[-52:]
 	# restructure into windows of weekly data
 	train = array(split(train, len(train)/13))
@@ -148,7 +150,7 @@ def baseline(dataset):
     return (min(model_score.values()), std)
 
 
-
+'''
 
 if __name__ == '__main__':
     ###### Setup
@@ -157,4 +159,12 @@ if __name__ == '__main__':
                        infer_datetime_format=True,
                        parse_dates=['Datetime'],
                        index_col=['Datetime'])
+    
+    #Xt = Transform_Dataset(dataset)
+    #Xt.decompose()
+    Xt1.compose(get_df(),compose_values.resid)
+    Xt1.df.head(4)
+    
+    
     model_scores = baseline(dataset)
+'''

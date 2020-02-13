@@ -12,7 +12,7 @@ Created on Wed Feb 12 17:37:00 2020
 #    Classe para manipular o dataset
 ##########
 
-import pandas
+#import pandas
 from statsmodels.tsa.seasonal import STL
 
 class Transform_Dataset:
