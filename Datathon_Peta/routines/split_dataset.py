@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Feb 12 21:18:52 2020
+
+@author: nicholasrichers
+"""
+
+
+
+# naive forecast strategies for the power usage dataset
+from math import sqrt
+from numpy import split
+from numpy import array
+from pandas import read_csv
+from sklearn.metrics import mean_squared_error
+from matplotlib import pyplot
+
+
+
+###### Setup
+REPO_URL = 'https://raw.githubusercontent.com/nicholasrichers/Desafio-Cola-Cola-Sofazao/master/Datathon_Peta/datasets/'
+X = read_csv(REPO_URL + 'processedDF.csv', sep=',',
+                   infer_datetime_format=True,
+                   parse_dates=['Datetime'],
+                   index_col=['Datetime'])
+
+
+
+
+X_train = X.iloc[:-13, :]
+X_test = X.iloc[-13:, :]
+
+
+X_train.to_csv(r'trainDF.csv', header=True)
+X_test.to_csv(r'testDF.csv', header=True)
