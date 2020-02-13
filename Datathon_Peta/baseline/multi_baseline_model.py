@@ -68,7 +68,7 @@ def evaluate_forecasts(actual, predicted):
 # summarize scores
 def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
-	print('%s: [%.3f] %s' % (name, score, s_scores))
+	#print('%s: [%.2f] %s' % (name, score, s_scores))
 
 
 # evaluate a single model
@@ -115,21 +115,26 @@ def baseline_multi(dataset):
     	
     # evaluate each model
     weeks = ["Wk" + str(i) for i in range(1,14)]
-    model_score = {}
+    model_score = []
     	
     for name, func in models.items():
       # evaluate and get scores
       score, scores = evaluate_model(func, train, test, pos)
       # summarize scores
       summarize_scores(name, score, scores)
-      model_score[name] = score
+      model_score.append(score)
       # plot scores
       pyplot.plot(weeks, scores, marker='o', label=name)
     
-      # show plot
+  
+  name = 'Yearly_Canais(Mean)'
+  print('%s: [%.2f] ' % (name, mean(scores)))
+  std = 0
+  
+  # show plot
   pyplot.legend()
   pyplot.show()
-  return model_score
+  return (mean(scores), std)
 
 
 '''

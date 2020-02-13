@@ -31,6 +31,12 @@ def pre_proc(df_vendas, df_macro):
     #last_holiday = filter(lambda x: x>df.index[-1], holidays)[0]
     df['Next_holiday'] = next_holiday(df)
     
+    df = df[['Total', 'SM', 'ROUTE', 'INDIRETOS',  'OUTROS',
+             'Day_gregoriano', 'Week_Month', 'Week_Year',
+             'Month_gregoriano', 'Year', 'holidays', 'Next_holiday',
+             'temperatura', 'Ajuste_ipca', 'PMC',
+             'Massa.Renda', 'Renda', 'Desemprego']]
+    
     #save csv
     #df.to_csv(r'processedDF.csv', header=True)
     return df

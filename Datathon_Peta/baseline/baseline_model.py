@@ -67,7 +67,7 @@ def evaluate_forecasts(actual, predicted):
 # summarize scores
 def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
-	print('%s: [%.3f] %s' % (name, score, s_scores))
+	print('%s: [%.2f] %s' % (name, score, s_scores))
 
 
 # evaluate a single model
@@ -143,12 +143,13 @@ def baseline(dataset):
     # show plot
     pyplot.legend()
     pyplot.show()
+    
+    std = 0
+    return (min(model_score.values()), std)
 
-    return model_score
 
 
 
-"""
 if __name__ == '__main__':
     ###### Setup
     REPO_URL = 'https://raw.githubusercontent.com/nicholasrichers/Desafio-Cola-Cola-Sofazao/master/Datathon_Peta/datasets/'
@@ -157,4 +158,3 @@ if __name__ == '__main__':
                        parse_dates=['Datetime'],
                        index_col=['Datetime'])
     model_scores = baseline(dataset)
- """
