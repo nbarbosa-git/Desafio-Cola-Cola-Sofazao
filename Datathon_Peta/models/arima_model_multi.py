@@ -1,31 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb 12 17:37:00 2020
+Created on Fri Feb 14 00:51:19 2020
 
 @author: nicholasrichers
 """
 
+
 ##########
-# File: baseline_model.py
+# File: arima_model.py
 # Description:
-#    Test Harness Modelo Baseline 1
+#    Test Harness Arima Multi
 ##########
 
 
-
-
- 
-# naive forecast strategies for the power usage dataset
+# arima forecast for the power usage dataset
 from math import sqrt
 from numpy import split
 from numpy import array
 from pandas import read_csv
 from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot
+from statsmodels.tsa.arima_model import ARIMA
 
 
-from class_transform_dataset import Transform_Dataset
+
+
+#from class_transform_dataset import Transform_Dataset
 
 from numpy import mean
 def mean_absolute_percentage_error(y_true, y_pred): 
@@ -62,95 +63,100 @@ def evaluate_forecasts(actual, predicted):
 			s +=  mean_absolute_percentage_error(actual[row, col], predicted[row, col])
 	score =  (s / (actual.shape[0] * actual.shape[1]))
 	return score, scores
-
-
-
+#--------
 
 # summarize scores
 def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
-	print('%s: [%.2f] %s' % (name, score, s_scores))
+	print('%s: [%.3f] %s' % (name, score, s_scores))
 
 
 # evaluate a single model
-def evaluate_model(model_func, train, test):
+def evaluate_model(model_func, train, test, pos):
 	# history is a list of weekly data
 	history = [x for x in train]
 	# walk-forward validation over each week
 	predictions = list()
 	for i in range(len(test)):
 		# predict the week
-		yhat_sequence = model_func(history)
+		yhat_sequence = model_func(history, pos)
 		# store the predictions
 		predictions.append(yhat_sequence)
 		# get real observation and add to history for predicting the next week
 		history.append(test[i, :])
 	predictions = array(predictions)
 	# evaluate predictions days for each week
-	score, scores = evaluate_forecasts(test[:, :, 0], predictions)
+	score, scores = evaluate_forecasts(test[:, :, pos], predictions)
 	return score, scores
 
 
-# daily persistence model
-def daily_persistence(history):
-	# get the data for the prior week
-	last_week = history[-1]
-	# get the total active power for the last day
-	value = last_week[-1, 0]
-	# prepare 7 day forecast
-	forecast = [value for _ in range(13)]
-	return forecast
+#--------
+
+# convert windows of quartely multivariate data into a series of total power
+def to_series(data, pos):
+	# extract just the total power from each week
+	series = [week[:, pos] for week in data]
+	# flatten into a single series
+	series = array(series).flatten()
+	return series
+
+# arima forecast
+def arima_forecast(history, pos):
+	# convert history into a univariate series
+	series = to_series(history, pos)
+	# define the model
+	model = ARIMA(series, order=(4,0,0))
+	# fit the model
+	model_fit = model.fit(disp=False)
+	# make forecast
+	yhat = model_fit.predict(len(series), len(series)+12)
+	return yhat
 
 
-# weekly persistence model
-def weekly_persistence(history):
-	# get the data for the prior week
-	last_week = history[-1]
-	return last_week[:, 0]
-
-
-# week one year ago persistence model
-def week_one_year_ago_persistence(history):
-	# get the data for the prior week
-	last_week = history[-4]
-	return last_week[:, 0]
+#--------
 
 
 
+def arima_multi(dataset):
+	# split into train and test
+  train, test = split_dataset(dataset.values)
+  for pos,col in enumerate(dataset.columns[1:5]):
 
-def baseline(dataset):
-    # split into train and test
-    train, test = split_dataset(dataset.values)
-    
     # define the names and functions for the models we wish to evaluate
     models = dict()
-    models['weekly'] = daily_persistence
-    models['quarterly'] = weekly_persistence
-    models['yearly'] = week_one_year_ago_persistence
-    
-    
+    name = "ARIMA_" + str(col)
+    models[name] = arima_forecast
+    pos+=1
+    	
     # evaluate each model
     weeks = ["Wk" + str(i) for i in range(1,14)]
-    model_score = {}
-    
+    model_score = []
+    	
     for name, func in models.items():
-    	# evaluate and get scores
-    	score, scores = evaluate_model(func, train, test)
-    	# summarize scores
-    	summarize_scores(name, score, scores)
-    	model_score[name] = score
-    	# plot scores
-    	pyplot.plot(weeks, scores, marker='o', label=name)
-
-    # show plot
-    pyplot.legend()
-    pyplot.show()
+      # evaluate and get scores
+      score, scores = evaluate_model(func, train, test, pos)
+      # summarize scores
+      summarize_scores(name, score, scores)
+      model_score.append(score)
+      # plot scores
+      pyplot.plot(weeks, scores, marker='o', label=name)
     
-    std = 0
-    return (min(model_score.values()), std)
+  
+  name = 'Yearly_Canais(Mean)'
+  print('%s: [%.2f] ' % (name, mean(scores)))
+  std = 0
+  
+  # show plot
+  pyplot.legend()
+  pyplot.show()
+  return (mean(scores), std)
 
 
-'''
+
+
+
+
+#'''
 
 if __name__ == '__main__':
     ###### Setup
@@ -160,11 +166,11 @@ if __name__ == '__main__':
                        parse_dates=['Datetime'],
                        index_col=['Datetime'])
     
-    #Xt = Transform_Dataset(dataset)
-    #Xt.decompose()
-    #Xt.compose(get_df(),compose_values.resid)
-    #Xt.df.head(4)
+
     
-    
-    model_scores = baseline(dataset)
-'''
+    model_scores = arima_multi(dataset)
+#'''
+
+
+
+

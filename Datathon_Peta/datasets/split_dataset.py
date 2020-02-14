@@ -37,8 +37,8 @@ X = X[['Total', 'SM', 'ROUTE', 'INDIRETOS',  'OUTROS',
 X.to_csv(r'processedDF.csv', header=True)
 
 
-X_train = X.iloc[:-13, :]
-X_test = X.iloc[-13:, :]
+X_train = X.iloc[:-8, :]
+X_test = X.iloc[-8:, :]
 
 
 X_train.to_csv(r'trainDF.csv', header=True)

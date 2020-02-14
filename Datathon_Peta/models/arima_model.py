@@ -1,31 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb 12 17:37:00 2020
+Created on Thu Feb 13 23:55:42 2020
 
 @author: nicholasrichers
 """
 
 ##########
-# File: baseline_model.py
+# File: arima_model.py
 # Description:
-#    Test Harness Modelo Baseline 1
+#    Test Harness Arima Univ
 ##########
 
 
-
-
- 
-# naive forecast strategies for the power usage dataset
+# arima forecast for the power usage dataset
 from math import sqrt
 from numpy import split
 from numpy import array
 from pandas import read_csv
 from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot
+from statsmodels.tsa.arima_model import ARIMA
 
 
-from class_transform_dataset import Transform_Dataset
+
+
+#from class_transform_dataset import Transform_Dataset
 
 from numpy import mean
 def mean_absolute_percentage_error(y_true, y_pred): 
@@ -54,7 +54,7 @@ def evaluate_forecasts(actual, predicted):
 		#rmse = sqrt(mse)
 		# store
 		scores.append(mape)
-	# calculate overall RMSE
+	# calculate overall MAPE
 	s = 0
 	for row in range(actual.shape[0]):
 		for col in range(actual.shape[1]):
@@ -64,13 +64,11 @@ def evaluate_forecasts(actual, predicted):
 	return score, scores
 
 
-
-
 # summarize scores
 def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
-	print('%s: [%.2f] %s' % (name, score, s_scores))
-
+	print('%s: [%.3f] %s' % (name, score, s_scores))
+#--------
 
 # evaluate a single model
 def evaluate_model(model_func, train, test):
@@ -91,42 +89,40 @@ def evaluate_model(model_func, train, test):
 	return score, scores
 
 
-# daily persistence model
-def daily_persistence(history):
-	# get the data for the prior week
-	last_week = history[-1]
-	# get the total active power for the last day
-	value = last_week[-1, 0]
-	# prepare 7 day forecast
-	forecast = [value for _ in range(13)]
-	return forecast
+#--------
+
+# convert windows of quartely multivariate data into a series of total power
+def to_series(data):
+	# extract just the total power from each week
+	series = [week[:, 0] for week in data]
+	# flatten into a single series
+	series = array(series).flatten()
+	return series
+
+# arima forecast
+def arima_forecast(history):
+	# convert history into a univariate series
+	series = to_series(history)
+	# define the model
+	model = ARIMA(series, order=(4,0,0))
+	# fit the model
+	model_fit = model.fit(disp=False)
+	# make forecast
+	yhat = model_fit.predict(len(series), len(series)+12)
+	return yhat
 
 
-# weekly persistence model
-def weekly_persistence(history):
-	# get the data for the prior week
-	last_week = history[-1]
-	return last_week[:, 0]
-
-
-# week one year ago persistence model
-def week_one_year_ago_persistence(history):
-	# get the data for the prior week
-	last_week = history[-4]
-	return last_week[:, 0]
+#--------
 
 
 
-
-def baseline(dataset):
+def arima(dataset):
     # split into train and test
     train, test = split_dataset(dataset.values)
     
     # define the names and functions for the models we wish to evaluate
     models = dict()
-    models['weekly'] = daily_persistence
-    models['quarterly'] = weekly_persistence
-    models['yearly'] = week_one_year_ago_persistence
+    models['arima'] = arima_forecast
     
     
     # evaluate each model
@@ -150,7 +146,11 @@ def baseline(dataset):
     return (min(model_score.values()), std)
 
 
-'''
+
+
+
+
+#'''
 
 if __name__ == '__main__':
     ###### Setup
@@ -160,11 +160,11 @@ if __name__ == '__main__':
                        parse_dates=['Datetime'],
                        index_col=['Datetime'])
     
-    #Xt = Transform_Dataset(dataset)
-    #Xt.decompose()
-    #Xt.compose(get_df(),compose_values.resid)
-    #Xt.df.head(4)
+
     
-    
-    model_scores = baseline(dataset)
-'''
+    model_scores = arima(dataset)
+#'''
+
+
+
+
