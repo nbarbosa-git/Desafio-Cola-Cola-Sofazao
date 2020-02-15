@@ -84,7 +84,7 @@ def get_models(models=dict()):
 	models['huber'] = HuberRegressor()
 	models['lars'] = Lars()
 	models['llars'] = LassoLars()
-	models['sgd'] = SGDRegressor(max_iter=1000, tol=1e-3)
+	models['sgd'] = SGDRegressor(max_iter=1000000, tol=1e-3)
 	#models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
 	#models['ranscac'] = RANSACRegressor()
 	print('Defined %d models' % len(models))
