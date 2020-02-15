@@ -176,7 +176,7 @@ def evaluate_model(model, train, test, n_input):
 
 
 #--------
-def linear_models_recursive(dataset):
+def linear_recursive(dataset):
     # split into train and test
     train, test = split_dataset(dataset.values)
     # prepare the models to evaluate
