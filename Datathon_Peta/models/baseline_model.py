@@ -20,12 +20,13 @@ Created on Wed Feb 12 17:37:00 2020
 from math import sqrt
 from numpy import split
 from numpy import array
+from numpy import log
 from pandas import read_csv
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_log_error
 from matplotlib import pyplot
 
 
-from class_transform_dataset import Transform_Dataset
+#from class_transform_dataset import Transform_Dataset
 
 from numpy import mean
 def mean_absolute_percentage_error(y_true, y_pred): 
@@ -33,11 +34,11 @@ def mean_absolute_percentage_error(y_true, y_pred):
 
 
 def split_dataset(data):
-	# split into standard quarters
-	train, test = data[8:-52], data[-52:]
+	# split into standard periods
+	train, test = data[2:-40], data[-40:]
 	# restructure into windows of weekly data
-	train = array(split(train, len(train)/13))
-	test = array(split(test, len(test)/13))
+	train = array(split(train, len(train)/8))
+	test = array(split(test, len(test)/8))
 	return train, test
 
 
@@ -49,18 +50,17 @@ def evaluate_forecasts(actual, predicted):
 	# calculate an RMSE score for each day
 	for i in range(actual.shape[1]):
 		# calculate mse
-		mape = mean_absolute_percentage_error(actual[:, i], predicted[:, i])
+		mse = mean_squared_log_error(actual[:, i], predicted[:, i])
 		# calculate rmse
-		#rmse = sqrt(mse)
+		rmse = sqrt(mse)
 		# store
-		scores.append(mape)
+		scores.append(rmse)
 	# calculate overall RMSE
 	s = 0
 	for row in range(actual.shape[0]):
 		for col in range(actual.shape[1]):
-			(actual[row, col] - predicted[row, col])**2
-			s +=  mean_absolute_percentage_error(actual[row, col], predicted[row, col])
-	score =  (s / (actual.shape[0] * actual.shape[1]))
+			s += (( log(actual[row, col]) - log(predicted[row, col]))**2)
+	score = sqrt((s / (actual.shape[0] * actual.shape[1])))
 	return score, scores
 
 
@@ -68,7 +68,7 @@ def evaluate_forecasts(actual, predicted):
 
 # summarize scores
 def summarize_scores(name, score, scores):
-	s_scores = ', '.join(['%.1f' % s for s in scores])
+	s_scores = ', '.join(['%.2f' % s for s in scores])
 	print('%s: [%.2f] %s' % (name, score, s_scores))
 
 
@@ -98,7 +98,7 @@ def daily_persistence(history):
 	# get the total active power for the last day
 	value = last_week[-1, 0]
 	# prepare 7 day forecast
-	forecast = [value for _ in range(13)]
+	forecast = [value for _ in range(8)]
 	return forecast
 
 
@@ -130,7 +130,7 @@ def baseline(dataset):
     
     
     # evaluate each model
-    weeks = ["Wk" + str(i) for i in range(1,14)]
+    weeks = ["Wk" + str(i) for i in range(1,9)]
     model_score = {}
     
     for name, func in models.items():
