@@ -119,7 +119,7 @@ def simple_configs(max_length, offsets=[1]):
 
 
 # grid search configs
-def baseline_grid_search(data, n_test=40, parallel=True):
+def baseline_grid_search(data, n_test=40, parallel=False):
     
     
 	data = data.iloc[:,0].values
