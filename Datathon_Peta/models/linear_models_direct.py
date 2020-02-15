@@ -144,7 +144,7 @@ def evaluate_model(model, train, test):
 	return score, scores
 
 #--------
-def linear_models_recursive(dataset):
+def linear_models_direct(dataset):
     # split into train and test
     train, test = split_dataset(dataset.values)
     # prepare the models to evaluate
@@ -182,5 +182,5 @@ if __name__ == '__main__':
     #Xt.df.head(4)
     
     
-    model_scores = linear_models_recursive(dataset)
+    model_scores = linear_models_direct(dataset)
 #'''
