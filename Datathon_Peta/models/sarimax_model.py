@@ -125,9 +125,7 @@ def sarimax(data, take_best=False):
     cfg_list = sarima_configs(seasonal=[0,4,52])
     
     if take_best == True:
-        cfg_list = [[(2, 0, 0), (0, 1, 2, 52), 'c'],
-                    [(0, 0, 0), (0, 1, 0, 52), 'n'],
-                    [(0, 0, 0), (1, 0, 0, 52), 'n']]
+        cfg_list = [[(0, 0, 0), (0, 1, 0, 52), 'c']]
     
     # grid search
     scores = grid_search(data, cfg_list, n_test=40)
