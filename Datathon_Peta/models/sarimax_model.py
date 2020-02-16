@@ -120,12 +120,12 @@ def sarima_configs(seasonal=[0]):
 
 
 def sarimax(data, take_best=False):
-    data = series.values[:,0]
+    data = data.values[:,0]
     # model configs
     cfg_list = sarima_configs(seasonal=[0,4,52])
     
     if take_best == True:
-        cfg_list = [[(0, 0, 0), (0, 0, 0, 52), 'n'],
+        cfg_list = [[(2, 0, 0), (0, 1, 2, 52), 'c'],
                     [(0, 0, 0), (0, 1, 0, 52), 'n'],
                     [(0, 0, 0), (1, 0, 0, 52), 'n']]
     

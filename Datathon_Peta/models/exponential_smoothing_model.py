@@ -120,16 +120,16 @@ def exp_smoothing_configs(seasonal=[None]):
 
 
 def exponential_smoothing(data, take_best=False):
-	data = series.iloc[:,0].values
+	data = data.iloc[:,0].values
 	# data split
 	# model configs
 	cfg_list = exp_smoothing_configs(seasonal=[0,4,52])
 	# grid search
 	
 	if take_best == True:
-		cfg_list = [[None, False, 'add', 52, False, False],
-                    [None, False, 'add', 52, False, True],
-                    ['mul', False, 'add', 52, False, False]]
+		cfg_list = [['mul', False, 'add', 52, False, False],
+                [None, False, 'add', 52, False, True],
+                [None, False, 'add', 52, False, False]]
         
 	scores = grid_search(data, cfg_list, n_test=40)
 	print('done')
@@ -142,7 +142,7 @@ def exponential_smoothing(data, take_best=False):
 
     
  
-
+'''
 if __name__ == '__main__':
 	# load dataset
 	REPO_URL = 'https://raw.githubusercontent.com/nicholasrichers/Desafio-Cola-Cola-Sofazao/master/Datathon_Peta/datasets/'
@@ -153,6 +153,6 @@ if __name__ == '__main__':
     #series = read_csv('monthly-car-sales.csv', header=0, index_col=0)
 	result = exponential_smoothing(series, take_best=True)
        
-
+'''
 
     
