@@ -123,17 +123,19 @@ def exponential_smoothing(data, take_best=False):
 	data = data.iloc[:,0].values
 	# data split
 	# model configs
-	cfg_list = exp_smoothing_configs(seasonal=[0,4,52])
+	cfg_list = exp_smoothing_configs(seasonal=[52])
 	# grid search
 	
 	if take_best == True:
 		cfg_list = [['mul', False, 'add', 52, False, False],
-                [None, False, 'add', 52, False, True],
-                [None, False, 'add', 52, False, False]]
+                ['mul', False, 'add', 52, False, True],
+                ['add', False, 'add', 52, False, False]]
         
+	#return cfg_list
 	scores = grid_search(data, cfg_list, n_test=40)
 	print('done')
 	# list top 3 configs
+	#print(scores[:3])
 	for cfg, error in scores[:3]:
 		if take_best==True: break
 		print(cfg, error)
