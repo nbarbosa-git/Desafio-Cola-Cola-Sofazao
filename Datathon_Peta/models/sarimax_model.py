@@ -1,59 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Feb 14 23:58:22 2020
+Created on Fri Feb 14 21:21:16 2020
 
 @author: nicholasrichers
 """
 
-
-
-##########
-# File: baseline_model.py
-# Description:
-#    Test Harness Modelo Baseline Univ
-##########
-
-
-
-# grid search simple forecast for monthly car sales
+# grid search sarima hyperparameters for monthly car sales dataset
 from math import sqrt
-from numpy import mean
-from numpy import median
 from multiprocessing import cpu_count
 from joblib import Parallel
 from joblib import delayed
 from warnings import catch_warnings
 from warnings import filterwarnings
-from sklearn.metrics import mean_squared_log_error
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+from sklearn.metrics import mean_squared_log_error, mean_squared_error
 from pandas import read_csv
 
-# one-step simple forecast
-def simple_forecast(history, config):
-	n, offset, avg_type = config
-	# persist value, ignore other config
-	if avg_type == 'persist':
-		return history[-n]
-	# collect values to average
-	values = list()
-	if offset == 1:
-		values = history[-n:]
-	else:
-		# skip bad configs
-		if n*offset > len(history):
-			raise Exception('Config beyond end of data: %d %d' % (n,offset))
-		# try and collect n values using offset
-		for i in range(1, n+1):
-			ix = i * offset
-			values.append(history[-ix])
-	# check if we can average
-	if len(values) < 2:
-		raise Exception('Cannot calculate average')
-	# mean of last n values
-	if avg_type == 'mean':
-		return mean(values)
-	# median of last n values
-	return median(values)
+# one-step sarima forecast
+def sarima_forecast(history, config):
+	order, sorder, trend = config
+	# define model
+	model = SARIMAX(history, order=order, seasonal_order=sorder, trend=trend, enforce_stationarity=False, enforce_invertibility=False)
+	# fit model
+	model_fit = model.fit(disp=False)
+	# make one step forecast
+	yhat = model_fit.predict(len(history), len(history)+7)
+	return yhat[0]
 
 # root mean squared error or rmse
 def measure_rmse(actual, predicted):
@@ -73,7 +46,7 @@ def walk_forward_validation(data, n_test, cfg):
 	# step over each time-step in the test set
 	for i in range(len(test)):
 		# fit model and make forecast for history
-		yhat = simple_forecast(history, cfg)
+		yhat = sarima_forecast(history, cfg)
 		# store forecast in list of predictions
 		predictions.append(yhat)
 		# add actual observation to history for the next loop
@@ -100,34 +73,12 @@ def score_model(data, n_test, cfg, debug=False):
 		except:
 			error = None
 	# check for an interesting result
-	#if result is not None:
-		#print(' > Model[%s] %.3f' % (key, result))
+	if result is not None:
+		print(' > Model[%s] %.4f' % (key, result))
 	return (key, result)
 
-
-
-# create a set of simple configs to try
-def simple_configs(max_length, offsets=[1]):
-	configs = list()
-	for i in range(1, max_length+1):
-		for o in offsets:
-			for t in ['persist', 'mean', 'median']:
-				cfg = [i, o, t]
-				configs.append(cfg)
-	return configs
-
-
-
 # grid search configs
-def baseline_grid_search(data, n_test=40, parallel=False):
-    
-    
-	data = data.iloc[:,0].values
-    # model configs
-	max_length = len(data) - n_test
-	cfg_list = simple_configs(max_length, offsets=[1,4,52])
-    
-    
+def grid_search(data, cfg_list, n_test, parallel=True):
 	scores = None
 	if parallel:
 		# execute configs in parallel
@@ -140,30 +91,64 @@ def baseline_grid_search(data, n_test=40, parallel=False):
 	scores = [r for r in scores if r[1] != None]
 	# sort configs by error, asc
 	scores.sort(key=lambda tup: tup[1])
+	return scores
+
+# create a set of sarima configs to try
+def sarima_configs(seasonal=[0]):
+	models = list()
+	# define config lists
+	p_params = [0, 1, 2]
+	d_params = [0, 1]
+	q_params = [0, 1, 2]
+	t_params = ['n','c','t','ct']
+	P_params = [0, 1, 2]
+	D_params = [0, 1]
+	Q_params = [0, 1, 2]
+	m_params = seasonal #[0,4,52]
+	# create config instances
+	for p in p_params:
+		for d in d_params:
+			for q in q_params:
+				for t in t_params:
+					for P in P_params:
+						for D in D_params:
+							for Q in Q_params:
+								for m in m_params:
+									cfg = [(p,d,q), (P,D,Q,m), t]
+									models.append(cfg)
+	return models
+
+
+def sarimax(data, take_best=False):
+    data = series.values[:,0]
+    # model configs
+    cfg_list = sarima_configs(seasonal=[0,4,52])
     
-	print('done')
-	# list top 3 configs
-	for cfg, error in scores[:3]:
-		print(' > Model[%s] %.3f' % (cfg, error))#print(cfg, error)
+    if take_best == True:
+        cfg_list = [[(0, 0, 0), (0, 0, 0, 52), 'n'],
+                    [(0, 0, 0), (0, 1, 0, 52), 'n'],
+                    [(0, 0, 0), (1, 0, 0, 52), 'n']]
+    
+    # grid search
+    scores = grid_search(data, cfg_list, n_test=40)
+    print('done')
+    # list top 3 configs
+    for cfg, error in scores[:3]:
+        if take_best==True: break
+        print(cfg, error)
+    return scores[0]
+        
 
 
 
-'''
 
 if __name__ == '__main__':
-	# define dataset
-    
-    
-	REPO_URL = 'https://raw.githubusercontent.com/nicholasrichers/Desafio-Cola-Cola-Sofazao/master/Datathon_Peta/datasets/'
-	series = read_csv(REPO_URL + 'trainDF.csv', sep=',',
+	# load dataset
+  REPO_URL = 'https://raw.githubusercontent.com/nicholasrichers/Desafio-Cola-Cola-Sofazao/master/Datathon_Peta/datasets/'
+  series = read_csv(REPO_URL + 'trainDF.csv', sep=',',
                        infer_datetime_format=True,
                        parse_dates=['Datetime'],
                        index_col=['Datetime'])
-    
 
-	baseline_grid_search(series)
 
-'''
-    
-    
-    
+  sarimax(series, take_best=True)
