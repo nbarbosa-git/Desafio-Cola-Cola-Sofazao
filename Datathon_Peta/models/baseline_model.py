@@ -146,8 +146,7 @@ def baseline(dataset):
     pyplot.legend()
     pyplot.show()
     
-    std = 0
-    return (min(model_score.values()), std)
+    return min(model_score.values())
 
 
 '''

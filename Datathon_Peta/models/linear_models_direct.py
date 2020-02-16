@@ -62,6 +62,9 @@ def evaluate_forecasts(actual, predicted):
 	score = sqrt(s / (actual.shape[0] * actual.shape[1]))
 	return score, scores
 
+
+
+
 # summarize scores
 def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
@@ -182,5 +185,5 @@ if __name__ == '__main__':
     #Xt.df.head(4)
     
     
-    model_scores = linear_models_direct(dataset)
+    model_scores = linear_direct(dataset)
 #'''

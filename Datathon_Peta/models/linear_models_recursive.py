@@ -17,7 +17,7 @@ Created on Sat Feb 15 02:58:28 2020
 from math import sqrt
 from numpy import split
 from numpy import array
-from numpy import log
+from numpy import log, std
 from pandas import read_csv
 from sklearn.metrics import mean_squared_log_error
 from matplotlib import pyplot
@@ -68,6 +68,7 @@ def evaluate_forecasts(actual, predicted):
 			s+= (( log(actual[row, col]) - log(predicted[row, col]))**2)
 	score = sqrt(s / (actual.shape[0] * actual.shape[1]))
 	return score, scores
+
 
 # summarize scores
 def summarize_scores(name, score, scores):
@@ -215,7 +216,7 @@ if __name__ == '__main__':
     #Xt.df.head(4)
     
     
-    model_scores = linear_models_recursive(dataset)
+    model_scores = linear_recursive(dataset)
 #'''
 
 

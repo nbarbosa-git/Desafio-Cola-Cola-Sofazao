@@ -127,10 +127,11 @@ if __name__ == '__main__':
     #series = read_csv('monthly-car-sales.csv', header=0, index_col=0)
 	data = series.iloc[:,0].values #data = series.values
 	# data split
-	n_test = 4
+	n_test = 40
 	# model configs
-	cfg_list = exp_smoothing_configs(seasonal=[52])
+	cfg_list = exp_smoothing_configs(seasonal=[0,52])
 	# grid search
+	print("start")
 	scores = grid_search(data, cfg_list, n_test)
 	print('done')
 	# list top 3 configs
