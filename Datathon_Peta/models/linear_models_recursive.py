@@ -221,7 +221,7 @@ def evaluate_model(model, train, test, n_input):
 
 
 #--------
-def ensemble_recursive(dataset):
+def linear_recursive(dataset):
     # split into train and test
     train, test = split_dataset(dataset.values)
     # prepare the models to evaluate
@@ -260,7 +260,7 @@ if __name__ == '__main__':
     #Xt.df.head(4)
     
     
-    model_scores = ensemble_recursive(dataset1)
+    model_scores = linear_recursive(dataset1)
 #'''
 
 
