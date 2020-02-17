@@ -26,6 +26,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Lasso
+from sklearn.svm import SVR
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import ElasticNet
 from sklearn.linear_model import HuberRegressor
