@@ -267,7 +267,7 @@ def seasonal_plot(df, ini, fim, frq):
     pyplot.subplot((n_groups*100) + 10 + i)
     i += 1
     pyplot.plot(group,  marker='o')
-  pyplot.legend()
+  #pyplot.legend()
   pyplot.tight_layout()
   #pyplot.show()
 
@@ -282,12 +282,12 @@ def seasonal_error_recursive(dataset):
     models = get_models()
     n_input = 4
     # evaluate each model
-    weeks = dataset.index[-40:]#.strftime('%y-%m-%d')# ["Wk" + str(i) for i in range(1,9)]
+    weeks = dataset.index[-38:]#.strftime('%y-%m-%d')# ["Wk" + str(i) for i in range(1,9)]
     results = dict()
     for name, model in models.items():
         # evaluate and get scores
         score, scores = evaluate_model(model, train, test, n_input)
-        results[name] = scores
+        results[name] = scores[2:]
         # summarize scores
         summarize_scores(name, score, scores)
         # plot scores
