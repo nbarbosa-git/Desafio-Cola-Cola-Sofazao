@@ -6,35 +6,11 @@ Created on Sat Feb 15 03:32:15 2020
 @author: nicholasrichers
 """
 
-##########
-# File: baseline_model.py
-# Description:
-#    Test Harness Modelos ensemble recursivos
-##########
-
-
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Feb 15 02:58:28 2020
-
-@author: nicholasrichers
-"""
-
-##########
-# File: baseline_model.py
-# Description:
-#    Test Harness Modelos ensemble recursivos
-##########
-
-
-# recursive multi-step forecast with linear algorithms
+# direct multi-step forecast by day
 from math import sqrt
 from numpy import split
 from numpy import array
-from numpy import log, std
-from numpy import concatenate
+from numpy import log
 from pandas import read_csv
 from sklearn.metrics import mean_squared_log_error
 from matplotlib import pyplot
@@ -51,11 +27,6 @@ from sklearn.linear_model import LassoLars
 from sklearn.linear_model import PassiveAggressiveRegressor
 from sklearn.linear_model import RANSACRegressor
 from sklearn.linear_model import SGDRegressor
-
-
-
-import warnings
-warnings.filterwarnings("ignore")
 
 from numpy import mean
 def mean_absolute_percentage_error(y_true, y_pred): 
@@ -92,13 +63,14 @@ def evaluate_forecasts(actual, predicted):
 	return score, scores
 
 
+
+
 # summarize scores
 def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
 	print('%s: [%.3f] %s' % (name, score, s_scores))
 #-------
-
-
+# prepare a list of ml models
 def get_models(models=dict()):
 	# linear models
 	models['lr'] = LinearRegression()
@@ -106,14 +78,11 @@ def get_models(models=dict()):
 	models['ridge'] = Ridge()
 	models['en'] = ElasticNet()
 	models['huber'] = HuberRegressor()
-	#models['lars'] = Lars()
+	models['lars'] = Lars()
 	models['llars'] = LassoLars()
 	models['sgd'] = SGDRegressor(max_iter=1000000, tol=1e-3)
-	models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
+	#models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
 	#models['ranscac'] = RANSACRegressor()
-	print('Defined %d models' % len(models))
-	return models
-    
 	print('Defined %d models' % len(models))
 	return models
 
@@ -130,86 +99,44 @@ def make_pipeline(model):
 	pipeline = Pipeline(steps=steps)
 	return pipeline
 
-# make a recursive multi-step forecast
-def forecast(model, input_x, n_input):
-	yhat_sequence = list()
-	input_data = [x for x in input_x]
-	for j in range(8):
-		# prepare the input data
-		X = array(input_data[-n_input:]).reshape(1, n_input)
-		# make a one-step forecast
-		yhat = model.predict(X)[0]
-		# add to the result
-		yhat_sequence.append(yhat)
-		# add the prediction to the input
-		input_data.append(yhat)
-	return yhat_sequence
-
-# convert windows of weekly multivariate data into a series of total power
-def to_series(data):
-	# extract just the total power from each week
-	series = [week[:,0] for week in data] #week[:, 0]
-	features = [week[:,1:] for week in data] #week[:, 0]
-	# flatten into a single series
-	series = array(series).flatten()
-	features = array(features).reshape(series.shape[0], 17)
-	return series, features
-
-
-
+#----
 
 # convert history into inputs and outputs
-def to_supervised(history, n_input, output_ix):
-	# convert history to a univariate series
-	data, features = to_series(history)
+def to_supervised(history, output_ix):
 	X, y = list(), list()
-	ix_start = 0
 	# step over the entire history one time step at a time
-	for i in range(len(data)):
-		# define the end of the input sequence
-		ix_end = ix_start + n_input
-		ix_output = ix_end + output_ix
-		# ensure we have enough data for this instance
-		if ix_output < len(data):
-			lags = data[ix_start:ix_end]
-			feat = features[ix_end-1, :]
-			X.append(concatenate((lags, feat), axis=0))
-			y.append(data[ix_output])
-		# move along one time step
-		ix_start += 1
+	for i in range(len(history)-1):
+		X.append(history[i][:,0])
+		y.append(history[i + 1][output_ix,0])
 	return array(X), array(y)
 
-
-
 # fit a model and make a forecast
-def sklearn_predict(model, history, n_input):
+def sklearn_predict(model, history):
 	yhat_sequence = list()
 	# fit a model for each forecast day
-	for i in range(8):
+	for i in range(8): ##
 		# prepare data
-		train_x, train_y = to_supervised(history, n_input, i)
+		train_x, train_y = to_supervised(history, i)
 		# make pipeline
 		pipeline = make_pipeline(model)
 		# fit the model
 		pipeline.fit(train_x, train_y)
 		# forecast
-		x_input = array(train_x[-1, :]).reshape(1,train_x.shape[1])
+		x_input = array(train_x[-1, :]).reshape(1,8) ##
 		yhat = pipeline.predict(x_input)[0]
 		# store
 		yhat_sequence.append(yhat)
 	return yhat_sequence
 
-
-
 # evaluate a single model
-def evaluate_model(model, train, test, n_input):
+def evaluate_model(model, train, test):
 	# history is a list of weekly data
 	history = [x for x in train]
 	# walk-forward validation over each week
 	predictions = list()
 	for i in range(len(test)):
 		# predict the week
-		yhat_sequence = sklearn_predict(model, history, n_input)
+		yhat_sequence = sklearn_predict(model, history)
 		# store the predictions
 		predictions.append(yhat_sequence)
 		# get real observation and add to history for predicting the next week
@@ -219,20 +146,18 @@ def evaluate_model(model, train, test, n_input):
 	score, scores = evaluate_forecasts(test[:, :, 0], predictions)
 	return score, scores
 
-
 #--------
-def ensemble_recursive(dataset):
+def linear_direct(dataset):
     # split into train and test
     train, test = split_dataset(dataset.values)
     # prepare the models to evaluate
     models = get_models()
-    n_input = 4
     # evaluate each model
     weeks = ["Wk" + str(i) for i in range(1,9)]
     results = dict()
     for name, model in models.items():
         # evaluate and get scores
-        score, scores = evaluate_model(model, train, test, n_input)
+        score, scores = evaluate_model(model, train, test)
         results[name] = score
         # summarize scores
         summarize_scores(name, score, scores)
@@ -249,7 +174,7 @@ def ensemble_recursive(dataset):
 if __name__ == '__main__':
     ###### Setup
     REPO_URL = 'https://raw.githubusercontent.com/nicholasrichers/Desafio-Cola-Cola-Sofazao/master/Datathon_Peta/datasets/'
-    dataset1 = read_csv(REPO_URL + 'trainDF.csv', sep=',',
+    dataset = read_csv(REPO_URL + 'trainDF.csv', sep=',',
                        infer_datetime_format=True,
                        parse_dates=['Datetime'],
                        index_col=['Datetime'])
@@ -260,10 +185,5 @@ if __name__ == '__main__':
     #Xt.df.head(4)
     
     
-    model_scores = ensemble_recursive(dataset1)
-#'''
-
-
-
-
+    model_scores = linear_direct(dataset)
 #'''

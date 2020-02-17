@@ -6,11 +6,20 @@ Created on Sat Feb 15 03:32:15 2020
 @author: nicholasrichers
 """
 
+##########
+# File: baseline_model.py
+# Description:
+#    Test Harness Modelos ensemble recursivos
+##########
+
+
 # direct multi-step forecast by day
 from math import sqrt
 from numpy import split
 from numpy import array
+#from numpy import append
 from numpy import log
+from numpy import concatenate
 from pandas import read_csv
 from sklearn.metrics import mean_squared_log_error
 from matplotlib import pyplot
@@ -27,6 +36,11 @@ from sklearn.linear_model import LassoLars
 from sklearn.linear_model import PassiveAggressiveRegressor
 from sklearn.linear_model import RANSACRegressor
 from sklearn.linear_model import SGDRegressor
+
+
+
+import warnings
+warnings.filterwarnings("ignore")
 
 from numpy import mean
 def mean_absolute_percentage_error(y_true, y_pred): 
@@ -70,7 +84,8 @@ def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
 	print('%s: [%.3f] %s' % (name, score, s_scores))
 #-------
-# prepare a list of ml models
+    
+    
 def get_models(models=dict()):
 	# linear models
 	models['lr'] = LinearRegression()
@@ -78,13 +93,15 @@ def get_models(models=dict()):
 	models['ridge'] = Ridge()
 	models['en'] = ElasticNet()
 	models['huber'] = HuberRegressor()
-	models['lars'] = Lars()
+	#models['lars'] = Lars()
 	models['llars'] = LassoLars()
 	models['sgd'] = SGDRegressor(max_iter=1000000, tol=1e-3)
-	#models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
+	models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
 	#models['ranscac'] = RANSACRegressor()
 	print('Defined %d models' % len(models))
 	return models
+    
+
 
 # create a feature preparation pipeline for a model
 def make_pipeline(model):
@@ -106,9 +123,16 @@ def to_supervised(history, output_ix):
 	X, y = list(), list()
 	# step over the entire history one time step at a time
 	for i in range(len(history)-1):
-		X.append(history[i][:,0])
+		lags = history[i][:,0]
+		# to get the other features from last timestep
+		features = history[i][7 , 1:]
+		features.reshape(1,-1)[0]
+		X.append(concatenate((lags, features), axis=0))
 		y.append(history[i + 1][output_ix,0])
+	#print(X)
 	return array(X), array(y)
+
+
 
 # fit a model and make a forecast
 def sklearn_predict(model, history):
@@ -122,7 +146,7 @@ def sklearn_predict(model, history):
 		# fit the model
 		pipeline.fit(train_x, train_y)
 		# forecast
-		x_input = array(train_x[-1, :]).reshape(1,8) ##
+		x_input = array(train_x[-1, :]).reshape(1,train_x.shape[1]) ##
 		yhat = pipeline.predict(x_input)[0]
 		# store
 		yhat_sequence.append(yhat)
