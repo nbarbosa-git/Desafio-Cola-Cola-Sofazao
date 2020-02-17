@@ -103,7 +103,6 @@ def get_models(models=dict()):
 	models['knn'] = KNeighborsRegressor(n_neighbors=8)
 	models['cart'] = DecisionTreeRegressor()
 	models['extra'] = ExtraTreeRegressor()
-	models['svmr'] = SVR()
 	# # ensemble models
 	n_trees = 100 #500
 	#models['ada'] = AdaBoostRegressor(n_estimators=n_trees)

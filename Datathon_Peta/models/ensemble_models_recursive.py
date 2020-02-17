@@ -106,7 +106,6 @@ def get_models(models=dict()):
 	models['knn'] = KNeighborsRegressor(n_neighbors=8)
 	models['cart'] = DecisionTreeRegressor()
 	models['extra'] = ExtraTreeRegressor()
-	models['svmr'] = SVR()
 	# # ensemble models
 	n_trees = 100 #500
 	#models['ada'] = AdaBoostRegressor(n_estimators=n_trees)
@@ -241,7 +240,7 @@ def ensemble_recursive(dataset):
     train, test = split_dataset(dataset.values)
     # prepare the models to evaluate
     models = get_models()
-    n_input = 2
+    n_input = 4
     # evaluate each model
     weeks = ["Wk" + str(i) for i in range(1,9)]
     results = dict()

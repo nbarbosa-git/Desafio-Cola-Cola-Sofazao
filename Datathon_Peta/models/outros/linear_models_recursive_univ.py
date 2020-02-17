@@ -82,6 +82,7 @@ def get_models(models=dict()):
 	models['lasso'] = Lasso()
 	models['ridge'] = Ridge()
 	models['en'] = ElasticNet()
+	models['svmr'] = SVR()
 	models['huber'] = HuberRegressor()
 	models['lars'] = Lars()
 	models['llars'] = LassoLars()
