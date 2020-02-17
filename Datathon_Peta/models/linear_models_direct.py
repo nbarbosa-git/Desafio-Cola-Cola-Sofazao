@@ -36,8 +36,8 @@ from sklearn.linear_model import LassoLars
 from sklearn.linear_model import PassiveAggressiveRegressor
 from sklearn.linear_model import RANSACRegressor
 from sklearn.linear_model import SGDRegressor
-
-
+from sklearn.linear_model import SGDRegressor
+from sklearn.svm import SVR
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -93,6 +93,7 @@ def get_models(models=dict()):
 	models['ridge'] = Ridge()
 	models['en'] = ElasticNet()
 	models['huber'] = HuberRegressor()
+	models['svmr'] = SVR()
 	#models['lars'] = Lars()
 	models['llars'] = LassoLars()
 	models['sgd'] = SGDRegressor(max_iter=1000000, tol=1e-3)

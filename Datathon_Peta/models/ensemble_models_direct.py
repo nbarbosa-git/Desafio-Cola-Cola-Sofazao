@@ -41,7 +41,7 @@ from sklearn.base import clone
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.tree import ExtraTreeRegressor
-from sklearn.svm import SVR
+
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import BaggingRegressor
 from sklearn.ensemble import RandomForestRegressor
