@@ -298,7 +298,7 @@ def seasonal_error_recursive(dataset):
     #pyplot.legend()
     pyplot.show()
         
-    #return results
+    return results
     
 #'''
 
