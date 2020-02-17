@@ -47,7 +47,11 @@ from sklearn.ensemble import BaggingRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.ensemble import GradientBoostingRegressor
+from lightgbm import LGBMRegressor
+from xgboost import XGBRegressor
 
+import warnings
+warnings.filterwarnings("ignore")
 
 from numpy import mean
 def mean_absolute_percentage_error(y_true, y_pred): 
@@ -91,6 +95,8 @@ def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
 	print('%s: [%.3f] %s' % (name, score, s_scores))
 #-------
+    
+    
 # prepare a list of ml models
 def get_models(models=dict()):
 	# non-linear models
@@ -100,13 +106,25 @@ def get_models(models=dict()):
 	models['svmr'] = SVR()
 	# # ensemble models
 	n_trees = 100 #500
-	models['ada'] = AdaBoostRegressor(n_estimators=n_trees)
+	#models['ada'] = AdaBoostRegressor(n_estimators=n_trees)
 	models['bag'] = BaggingRegressor(n_estimators=n_trees)
 	models['rf'] = RandomForestRegressor(n_estimators=n_trees)
-	models['et'] = ExtraTreesRegressor(n_estimators=n_trees)
+	#models['et'] = ExtraTreesRegressor(n_estimators=n_trees)
 	models['gbm'] = GradientBoostingRegressor(n_estimators=n_trees)
     
-    #inserir XGBOOST e LGBM (configs Mario)
+	models['xgb'] = XGBRegressor(max_depth=8, n_estimators=n_trees,
+                                 min_child_weight=300, colsample_bytree=0.8, 
+                                 subsample=0.8, eta=0.3, 
+                                 seed=42, silent=True)
+    
+
+	models['lgbm'] = LGBMRegressor(n_jobs=-1,        random_state=0, 
+                                   n_estimators=n_trees, learning_rate=0.001, 
+                                   num_leaves=2**6,  subsample=0.9, 
+                                   subsample_freq=1, colsample_bytree=1.)
+    
+
+    
     
 	print('Defined %d models' % len(models))
 	return models
