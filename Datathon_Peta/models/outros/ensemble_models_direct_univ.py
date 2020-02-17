@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Feb 15 02:58:28 2020
+Created on Sat Feb 15 03:32:15 2020
 
 @author: nicholasrichers
 """
@@ -9,15 +9,15 @@ Created on Sat Feb 15 02:58:28 2020
 ##########
 # File: baseline_model.py
 # Description:
-#    Test Harness Modelos lineares recursivos
+#    Test Harness Modelos ensemble diretos univ
 ##########
 
 
-# recursive multi-step forecast with linear algorithms
+# direct multi-step forecast by day
 from math import sqrt
 from numpy import split
 from numpy import array
-from numpy import log, std
+from numpy import log
 from pandas import read_csv
 from sklearn.metrics import mean_squared_log_error
 from matplotlib import pyplot
@@ -34,6 +34,19 @@ from sklearn.linear_model import LassoLars
 from sklearn.linear_model import PassiveAggressiveRegressor
 from sklearn.linear_model import RANSACRegressor
 from sklearn.linear_model import SGDRegressor
+
+from sklearn.base import clone
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import ExtraTreeRegressor
+from sklearn.svm import SVR
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.ensemble import BaggingRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+
+
 
 from numpy import mean
 def mean_absolute_percentage_error(y_true, y_pred): 
@@ -70,6 +83,8 @@ def evaluate_forecasts(actual, predicted):
 	return score, scores
 
 
+
+
 # summarize scores
 def summarize_scores(name, score, scores):
 	s_scores = ', '.join(['%.1f' % s for s in scores])
@@ -77,17 +92,21 @@ def summarize_scores(name, score, scores):
 #-------
 # prepare a list of ml models
 def get_models(models=dict()):
-	# linear models
-	models['lr'] = LinearRegression()
-	models['lasso'] = Lasso()
-	models['ridge'] = Ridge()
-	models['en'] = ElasticNet()
-	models['huber'] = HuberRegressor()
-	models['lars'] = Lars()
-	models['llars'] = LassoLars()
-	models['sgd'] = SGDRegressor(max_iter=1000000, tol=1e-3)
-	#models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
-	#models['ranscac'] = RANSACRegressor()
+	# non-linear models
+	models['knn'] = KNeighborsRegressor(n_neighbors=8)
+	models['cart'] = DecisionTreeRegressor()
+	models['extra'] = ExtraTreeRegressor()
+	models['svmr'] = SVR()
+	# # ensemble models
+	n_trees = 100 #500
+	models['ada'] = AdaBoostRegressor(n_estimators=n_trees)
+	models['bag'] = BaggingRegressor(n_estimators=n_trees)
+	models['rf'] = RandomForestRegressor(n_estimators=n_trees)
+	models['et'] = ExtraTreesRegressor(n_estimators=n_trees)
+	models['gbm'] = GradientBoostingRegressor(n_estimators=n_trees)
+    
+    #inserir XGBOOST e LGBM (configs Mario)
+    
 	print('Defined %d models' % len(models))
 	return models
 
@@ -104,68 +123,44 @@ def make_pipeline(model):
 	pipeline = Pipeline(steps=steps)
 	return pipeline
 
-# make a recursive multi-step forecast
-def forecast(model, input_x, n_input):
-	yhat_sequence = list()
-	input_data = [x for x in input_x]
-	for j in range(8):
-		# prepare the input data
-		X = array(input_data[-n_input:]).reshape(1, n_input)
-		# make a one-step forecast
-		yhat = model.predict(X)[0]
-		# add to the result
-		yhat_sequence.append(yhat)
-		# add the prediction to the input
-		input_data.append(yhat)
-	return yhat_sequence
-
-# convert windows of weekly multivariate data into a series of total power
-def to_series(data):
-	# extract just the total power from each week
-	series = [week[:, 0] for week in data]
-	# flatten into a single series
-	series = array(series).flatten()
-	return series
+#----
 
 # convert history into inputs and outputs
-def to_supervised(history, n_input):
-	# convert history to a univariate series
-	data = to_series(history)
+def to_supervised(history, output_ix):
 	X, y = list(), list()
-	ix_start = 0
 	# step over the entire history one time step at a time
-	for i in range(len(data)):
-		# define the end of the input sequence
-		ix_end = ix_start + n_input
-		# ensure we have enough data for this instance
-		if ix_end < len(data):
-			X.append(data[ix_start:ix_end])
-			y.append(data[ix_end])
-		# move along one time step
-		ix_start += 1
+	for i in range(len(history)-1):
+		X.append(history[i][:,0])
+		y.append(history[i + 1][output_ix,0])
 	return array(X), array(y)
 
 # fit a model and make a forecast
-def sklearn_predict(model, history, n_input):
-	# prepare data
-	train_x, train_y = to_supervised(history, n_input)
-	# make pipeline
-	pipeline = make_pipeline(model)
-	# fit the model
-	pipeline.fit(train_x, train_y)
-	# predict the week, recursively
-	yhat_sequence = forecast(pipeline, train_x[-1, :], n_input)
+def sklearn_predict(model, history):
+	yhat_sequence = list()
+	# fit a model for each forecast day
+	for i in range(8): ##
+		# prepare data
+		train_x, train_y = to_supervised(history, i)
+		# make pipeline
+		pipeline = make_pipeline(model)
+		# fit the model
+		pipeline.fit(train_x, train_y)
+		# forecast
+		x_input = array(train_x[-1, :]).reshape(1,8) ##
+		yhat = pipeline.predict(x_input)[0]
+		# store
+		yhat_sequence.append(yhat)
 	return yhat_sequence
 
 # evaluate a single model
-def evaluate_model(model, train, test, n_input):
+def evaluate_model(model, train, test):
 	# history is a list of weekly data
 	history = [x for x in train]
 	# walk-forward validation over each week
 	predictions = list()
 	for i in range(len(test)):
 		# predict the week
-		yhat_sequence = sklearn_predict(model, history, n_input)
+		yhat_sequence = sklearn_predict(model, history)
 		# store the predictions
 		predictions.append(yhat_sequence)
 		# get real observation and add to history for predicting the next week
@@ -175,20 +170,18 @@ def evaluate_model(model, train, test, n_input):
 	score, scores = evaluate_forecasts(test[:, :, 0], predictions)
 	return score, scores
 
-
 #--------
-def linear_recursive(dataset):
+def linear_direct(dataset):
     # split into train and test
     train, test = split_dataset(dataset.values)
     # prepare the models to evaluate
     models = get_models()
-    n_input = 4
     # evaluate each model
     weeks = ["Wk" + str(i) for i in range(1,9)]
     results = dict()
     for name, model in models.items():
         # evaluate and get scores
-        score, scores = evaluate_model(model, train, test, n_input)
+        score, scores = evaluate_model(model, train, test)
         results[name] = score
         # summarize scores
         summarize_scores(name, score, scores)
@@ -216,10 +209,5 @@ if __name__ == '__main__':
     #Xt.df.head(4)
     
     
-    model_scores = linear_recursive(dataset)
-#'''
-
-
-
-
+    model_scores = linear_direct(dataset)
 #'''

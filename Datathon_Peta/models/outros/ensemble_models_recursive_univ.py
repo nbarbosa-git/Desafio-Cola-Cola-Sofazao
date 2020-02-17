@@ -9,7 +9,7 @@ Created on Sat Feb 15 02:58:28 2020
 ##########
 # File: baseline_model.py
 # Description:
-#    Test Harness Modelos lineares recursivos
+#    Test Harness Modelos ensemble recursivos
 ##########
 
 
@@ -34,6 +34,20 @@ from sklearn.linear_model import LassoLars
 from sklearn.linear_model import PassiveAggressiveRegressor
 from sklearn.linear_model import RANSACRegressor
 from sklearn.linear_model import SGDRegressor
+
+
+from sklearn.base import clone
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import ExtraTreeRegressor
+from sklearn.svm import SVR
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.ensemble import BaggingRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+
+
 
 from numpy import mean
 def mean_absolute_percentage_error(y_true, y_pred): 
@@ -76,7 +90,7 @@ def summarize_scores(name, score, scores):
 	print('%s: [%.3f] %s' % (name, score, s_scores))
 #-------
 # prepare a list of ml models
-def get_models(models=dict()):
+def get_models_linear(models=dict()):
 	# linear models
 	models['lr'] = LinearRegression()
 	models['lasso'] = Lasso()
@@ -88,6 +102,25 @@ def get_models(models=dict()):
 	models['sgd'] = SGDRegressor(max_iter=1000000, tol=1e-3)
 	#models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
 	#models['ranscac'] = RANSACRegressor()
+	print('Defined %d models' % len(models))
+	return models
+
+def get_models(models=dict()):
+	# non-linear models
+	models['knn'] = KNeighborsRegressor(n_neighbors=8)
+	models['cart'] = DecisionTreeRegressor()
+	models['extra'] = ExtraTreeRegressor()
+	models['svmr'] = SVR()
+	# # ensemble models
+	n_trees = 100 #500
+	models['ada'] = AdaBoostRegressor(n_estimators=n_trees)
+	models['bag'] = BaggingRegressor(n_estimators=n_trees)
+	models['rf'] = RandomForestRegressor(n_estimators=n_trees)
+	models['et'] = ExtraTreesRegressor(n_estimators=n_trees)
+	models['gbm'] = GradientBoostingRegressor(n_estimators=n_trees)
+    
+    #inserir XGBOOST e LGBM (configs Mario)
+    
 	print('Defined %d models' % len(models))
 	return models
 
@@ -122,7 +155,7 @@ def forecast(model, input_x, n_input):
 # convert windows of weekly multivariate data into a series of total power
 def to_series(data):
 	# extract just the total power from each week
-	series = [week[:, 0] for week in data]
+	series = [week[:,0] for week in data] #week[:, 0]
 	# flatten into a single series
 	series = array(series).flatten()
 	return series

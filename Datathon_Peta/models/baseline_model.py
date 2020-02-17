@@ -149,7 +149,7 @@ def baseline(dataset):
     return min(model_score.values())
 
 
-'''
+#'''
 
 if __name__ == '__main__':
     ###### Setup
@@ -166,4 +166,4 @@ if __name__ == '__main__':
     
     
     model_scores = baseline(dataset)
-'''
+#'''
