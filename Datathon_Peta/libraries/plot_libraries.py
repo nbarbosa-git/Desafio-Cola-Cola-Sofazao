@@ -52,6 +52,27 @@ def plot_residuos(X, Xt):
   stat_Xt = Xt.groupby(Xt.index.year).agg(['mean', 'std']).T
   return stat_Xt #, stat_Xt
 
+
+
+  #verificar residuo gaussiano
+def plot_error(X, Xt):
+
+  fig, ((ax1, ax2), (ax3, ax4)) = pyplot.subplots(2, 2)
+  #fig.suptitle('Sharing x per column, y per row')
+
+  X.hist(ax=ax1) 
+  Xt.hist(ax=ax2, color='coral') 
+
+  X.plot(kind='kde', ax=ax3)
+  Xt.plot(kind='kde', ax=ax4, color='coral')
+  
+  ax1.set_title("svr")
+  ax2.set_title("lgbm")
+
+  pyplot.tight_layout()
+  pyplot.show()
+
+
 #plot graficos EDA
 def plot_var(df, y_axis, stack, x_axis1, x_axis2, agg='Mean'):
 
