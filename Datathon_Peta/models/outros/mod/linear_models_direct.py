@@ -36,19 +36,8 @@ from sklearn.linear_model import LassoLars
 from sklearn.linear_model import PassiveAggressiveRegressor
 from sklearn.linear_model import RANSACRegressor
 from sklearn.linear_model import SGDRegressor
-
-from sklearn.base import clone
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.tree import ExtraTreeRegressor
+from sklearn.linear_model import SGDRegressor
 from sklearn.svm import SVR
-from sklearn.ensemble import AdaBoostRegressor
-from sklearn.ensemble import BaggingRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import ExtraTreesRegressor
-from sklearn.ensemble import GradientBoostingRegressor
-from lightgbm import LGBMRegressor
-from xgboost import XGBRegressor
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -97,36 +86,23 @@ def summarize_scores(name, score, scores):
 #-------
     
     
-# prepare a list of ml models
 def get_models(models=dict()):
-	# non-linear models
-	models['knn'] = KNeighborsRegressor(n_neighbors=8)
-	models['cart'] = DecisionTreeRegressor()
-	models['extra'] = ExtraTreeRegressor()
-	# # ensemble models
-	n_trees = 100 #500
-	#models['ada'] = AdaBoostRegressor(n_estimators=n_trees)
-	models['bag'] = BaggingRegressor(n_estimators=n_trees)
-	models['rf'] = RandomForestRegressor(n_estimators=n_trees)
-	#models['et'] = ExtraTreesRegressor(n_estimators=n_trees)
-	models['gbm'] = GradientBoostingRegressor(n_estimators=n_trees)
-    
-	models['xgb'] = XGBRegressor(max_depth=8, n_estimators=n_trees,
-                                 min_child_weight=300, colsample_bytree=0.8, 
-                                 subsample=0.8, eta=0.3, 
-                                 seed=42, silent=True)
-    
-
-	models['lgbm'] = LGBMRegressor(n_jobs=-1,        random_state=0, 
-                                   n_estimators=n_trees, learning_rate=0.001, 
-                                   num_leaves=2**6,  subsample=0.9, 
-                                   subsample_freq=1, colsample_bytree=1.)
-    
-
-    
-    
+	# linear models
+	models['lr'] = LinearRegression()
+	models['lasso'] = Lasso()
+	models['ridge'] = Ridge()
+	models['en'] = ElasticNet()
+	models['huber'] = HuberRegressor()
+	models['svmr'] = SVR()
+	#models['lars'] = Lars()
+	models['llars'] = LassoLars()
+	models['sgd'] = SGDRegressor(max_iter=1000000, tol=1e-3)
+	models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
+	#models['ranscac'] = RANSACRegressor()
 	print('Defined %d models' % len(models))
 	return models
+    
+
 
 # create a feature preparation pipeline for a model
 def make_pipeline(model):
@@ -196,7 +172,7 @@ def evaluate_model(model, train, test):
 	return score, scores
 
 #--------
-def ensemble_direct(dataset):
+def linear_direct(dataset):
     # split into train and test
     train, test = split_dataset(dataset.values)
     # prepare the models to evaluate
@@ -234,5 +210,5 @@ if __name__ == '__main__':
     #Xt.df.head(4)
     
     
-    model_scores = ensemble_direct(dataset)
+    model_scores = linear_direct(dataset)
 #'''

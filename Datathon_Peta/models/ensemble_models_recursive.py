@@ -109,24 +109,24 @@ def get_models(models=dict()):
 	# # ensemble models
 	n_trees = 100 #500
 	#models['ada'] = AdaBoostRegressor(n_estimators=n_trees)
-	#models['bag'] = BaggingRegressor(n_estimators=n_trees)
-	#models['rf'] = RandomForestRegressor(n_estimators=n_trees)
+	models['bag'] = BaggingRegressor(n_estimators=n_trees)
+	models['rf'] = RandomForestRegressor(n_estimators=n_trees)
 	#models['et'] = ExtraTreesRegressor(n_estimators=n_trees)
-	#models['gbm'] = GradientBoostingRegressor(n_estimators=n_trees)
+	models['gbm'] = GradientBoostingRegressor(n_estimators=n_trees)
     
-	'''#models['xgb'] = XGBRegressor(max_depth=8, n_estimators=n_trees,
+	models['xgb'] = XGBRegressor(max_depth=8, n_estimators=n_trees,
                                  min_child_weight=300, colsample_bytree=0.8, 
                                  subsample=0.8, eta=0.3, 
                                  seed=42, silent=True)
     
 
-	#models['lgbm'] = LGBMRegressor(n_jobs=-1,        random_state=0, 
+	models['lgbm'] = LGBMRegressor(n_jobs=-1,        random_state=0, 
                                    n_estimators=n_trees, learning_rate=0.001, 
                                    num_leaves=2**6,  subsample=0.9, 
                                    subsample_freq=1, colsample_bytree=1.)
     
 
-    '''
+    
     
 	print('Defined %d models' % len(models))
 	return models
@@ -144,9 +144,20 @@ def make_pipeline(model):
 	pipeline = Pipeline(steps=steps)
 	return pipeline
 
-
-
-
+# make a recursive multi-step forecast
+def forecast(model, input_x, n_input):
+	yhat_sequence = list()
+	input_data = [x for x in input_x]
+	for j in range(8):
+		# prepare the input data
+		X = array(input_data[-n_input:]).reshape(1, n_input)
+		# make a one-step forecast
+		yhat = model.predict(X)[0]
+		# add to the result
+		yhat_sequence.append(yhat)
+		# add the prediction to the input
+		input_data.append(yhat)
+	return yhat_sequence
 
 # convert windows of weekly multivariate data into a series of total power
 def to_series(data):
@@ -174,13 +185,12 @@ def to_supervised(history, n_input, output_ix):
 		ix_output = ix_end + output_ix
 		# ensure we have enough data for this instance
 		if ix_output < len(data):
-			lags =  data[ix_start:ix_end]
+			lags = data[ix_start:ix_end]
 			feat = features[ix_end-1, :]
 			X.append(concatenate((lags, feat), axis=0))
-			y.append(data[ix_output] - data[(ix_output-52)])
+			y.append(data[ix_output])
 		# move along one time step
 		ix_start += 1
-        
 	return array(X), array(y)
 
 
@@ -199,10 +209,10 @@ def sklearn_predict(model, history, n_input):
 		# forecast
 		x_input = array(train_x[-1, :]).reshape(1,train_x.shape[1])
 		yhat = pipeline.predict(x_input)[0]
-		yhat += x_input[0][0]
 		# store
 		yhat_sequence.append(yhat)
 	return yhat_sequence
+
 
 
 # evaluate a single model
@@ -230,7 +240,7 @@ def ensemble_recursive(dataset):
     train, test = split_dataset(dataset.values)
     # prepare the models to evaluate
     models = get_models()
-    n_input = 53
+    n_input = 4
     # evaluate each model
     weeks = ["Wk" + str(i) for i in range(1,9)]
     results = dict()
