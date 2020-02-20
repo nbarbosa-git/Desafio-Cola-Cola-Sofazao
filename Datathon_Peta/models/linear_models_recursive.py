@@ -1,17 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Feb 15 03:32:15 2020
-
-@author: nicholasrichers
-"""
-
-##########
-# File: baseline_model.py
-# Description:
-#    Test Harness Modelos ensemble recursivos
-##########
-
 
 
 #!/usr/bin/env python3
@@ -25,7 +13,7 @@ Created on Sat Feb 15 02:58:28 2020
 ##########
 # File: baseline_model.py
 # Description:
-#    Test Harness Modelos ensemble recursivos
+#    Test Harness Modelos lineares recursivos
 ##########
 
 
@@ -53,6 +41,14 @@ from sklearn.linear_model import RANSACRegressor
 from sklearn.linear_model import SGDRegressor
 from sklearn.svm import SVR
 
+
+from sklearn.pipeline import FeatureUnion
+from skits.pipeline import ForecasterPipeline
+from skits.feature_extraction import AutoregressiveTransformer
+from skits.feature_extraction import SeasonalTransformer
+from skits.preprocessing import ReversibleImputer
+from skits.preprocessing import DifferenceTransformer
+from numpy import newaxis
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -108,9 +104,9 @@ def get_models(models=dict()):
 	models['huber'] = HuberRegressor()
 	models['svmr'] = SVR()
 	#models['lars'] = Lars()
-	models['llars'] = LassoLars()
-	models['sgd'] = SGDRegressor(max_iter=1000000, tol=1e-3)
-	models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
+	#models['llars'] = LassoLars()
+	#models['sgd'] = SGDRegressor(max_iter=1000000, tol=1e-3)
+	#models['pa'] = PassiveAggressiveRegressor(max_iter=1000000, tol=1e-3)
 	#models['ranscac'] = RANSACRegressor()
 	print('Defined %d models' % len(models))
 	return models
@@ -118,8 +114,10 @@ def get_models(models=dict()):
 	print('Defined %d models' % len(models))
 	return models
 
+
+
 # create a feature preparation pipeline for a model
-def make_pipeline(model):
+def make_pipeline_(model):
 	steps = list()
 	# standardization
 	steps.append(('standardize', StandardScaler()))
@@ -130,6 +128,41 @@ def make_pipeline(model):
 	# create pipeline
 	pipeline = Pipeline(steps=steps)
 	return pipeline
+
+
+# create a feature preparation pipeline for a model
+def make_pipeline(model):
+    steps = [('features', FeatureUnion([
+        ('seasonal_features', SeasonalTransformer(seasonal_period=1)),
+        ('ar_features', AutoregressiveTransformer(num_lags=1))
+    ]))]
+
+    #steps = list() 
+    steps.append(('post_feature_imputer', ReversibleImputer()))
+    # standardization    
+    steps.append(('standardize', StandardScaler()))
+    # normalization
+    steps.append(('normalize', MinMaxScaler()))
+    # the model
+    steps.append(('model', model))
+    # create pipeline
+    #pipeline = ForecasterPipeline(steps=steps)
+    pipeline = ForecasterPipeline([
+    ('pre_differencer', DifferenceTransformer(period=1)),
+    ('pre_diff_imputer', ReversibleImputer()),
+    ('pre_day_differencer', DifferenceTransformer(period=1)),
+    ('pre_day_diff_imputer', ReversibleImputer()),
+    ('pre_scaler', StandardScaler()),
+    ('features', FeatureUnion([
+        ('ar_features', AutoregressiveTransformer(num_lags=1)),
+        ('seasonal_features', SeasonalTransformer(seasonal_period=1)),
+    ])),
+    ('post_feature_imputer', ReversibleImputer()),
+    ('post_feature_scaler', StandardScaler()),
+    ('model', LinearRegression(fit_intercept=False))])
+
+    
+    return pipeline
 
 # make a recursive multi-step forecast
 def forecast(model, input_x, n_input):
@@ -172,9 +205,10 @@ def to_supervised(history, n_input, output_ix):
 		ix_output = ix_end + output_ix
 		# ensure we have enough data for this instance
 		if ix_output < len(data):
-			lags = data[ix_start:ix_end]
-			feat = features[ix_end-1, :]
-			X.append(concatenate((lags, feat), axis=0))
+			#lags = data[ix_start:ix_end]
+			#feat = features[ix_end-1, :]
+			#X.append(concatenate((lags, feat), axis=0))
+			X.append(data[ix_start:ix_end])
 			y.append(data[ix_output])
 		# move along one time step
 		ix_start += 1
@@ -192,10 +226,13 @@ def sklearn_predict(model, history, n_input):
 		# make pipeline
 		pipeline = make_pipeline(model)
 		# fit the model
-		pipeline.fit(train_x, train_y)
+		c = train_x[:,0].copy()[:, newaxis]
+		cy = train_y.copy()[:, newaxis]
+		pipeline.fit(cy, train_y)
 		# forecast
 		x_input = array(train_x[-1, :]).reshape(1,train_x.shape[1])
-		yhat = pipeline.predict(x_input)[0]
+		yhat = pipeline.predict(x_input, to_scale=True, refit=True)
+		#yhat = pipeline.predict(x_input)[0]
 		# store
 		yhat_sequence.append(yhat)
 	return yhat_sequence
@@ -227,7 +264,7 @@ def linear_recursive(dataset):
     train, test = split_dataset(dataset.values)
     # prepare the models to evaluate
     models = get_models()
-    n_input = 4
+    n_input = 1
     # evaluate each model
     weeks = ["Wk" + str(i) for i in range(1,9)]
     results = dict()
@@ -250,7 +287,7 @@ def linear_recursive(dataset):
 if __name__ == '__main__':
     ###### Setup
     REPO_URL = 'https://raw.githubusercontent.com/nicholasrichers/Desafio-Cola-Cola-Sofazao/master/Datathon_Peta/datasets/'
-    dataset1 = read_csv(REPO_URL + 'trainDF.csv', sep=',',
+    dataset = read_csv(REPO_URL + 'trainDF.csv', sep=',',
                        infer_datetime_format=True,
                        parse_dates=['Datetime'],
                        index_col=['Datetime'])
@@ -261,7 +298,7 @@ if __name__ == '__main__':
     #Xt.df.head(4)
     
     
-    model_scores = linear_recursive(dataset1)
+    model_scores = linear_recursive(dataset)
 #'''
 
 
