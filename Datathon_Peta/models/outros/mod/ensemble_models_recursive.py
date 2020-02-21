@@ -108,25 +108,25 @@ def get_models(models=dict()):
 	models['extra'] = ExtraTreeRegressor()
 	# # ensemble models
 	n_trees = 100 #500
-	#models['ada'] = AdaBoostRegressor(n_estimators=n_trees)
-	#models['bag'] = BaggingRegressor(n_estimators=n_trees)
-	#models['rf'] = RandomForestRegressor(n_estimators=n_trees)
-	#models['et'] = ExtraTreesRegressor(n_estimators=n_trees)
-	#models['gbm'] = GradientBoostingRegressor(n_estimators=n_trees)
+	models['ada'] = AdaBoostRegressor(n_estimators=n_trees)
+	models['bag'] = BaggingRegressor(n_estimators=n_trees)
+	models['rf'] = RandomForestRegressor(n_estimators=n_trees)
+	models['et'] = ExtraTreesRegressor(n_estimators=n_trees)
+	models['gbm'] = GradientBoostingRegressor(n_estimators=n_trees)
     
-	'''#models['xgb'] = XGBRegressor(max_depth=8, n_estimators=n_trees,
+	models['xgb'] = XGBRegressor(max_depth=8, n_estimators=n_trees,
                                  min_child_weight=300, colsample_bytree=0.8, 
                                  subsample=0.8, eta=0.3, 
                                  seed=42, silent=True)
     
 
-	#models['lgbm'] = LGBMRegressor(n_jobs=-1,        random_state=0, 
+	models['lgbm'] = LGBMRegressor(n_jobs=-1,        random_state=0, 
                                    n_estimators=n_trees, learning_rate=0.001, 
                                    num_leaves=2**6,  subsample=0.9, 
                                    subsample_freq=1, colsample_bytree=1.)
     
 
-    '''
+    
     
 	print('Defined %d models' % len(models))
 	return models
