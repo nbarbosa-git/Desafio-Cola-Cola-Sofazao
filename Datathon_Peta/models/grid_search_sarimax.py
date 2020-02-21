@@ -122,10 +122,10 @@ def grid_search(data, cfg_list, parallel=True):
 	if parallel:
 		# execute configs in parallel
 		executor = Parallel(n_jobs=cpu_count(), backend='multiprocessing')
-		tasks = (delayed(score_model)(data, cfg) for cfg in cfg_list)
+		tasks = (delayed(evaluate_model)(data, cfg) for cfg in cfg_list)
 		scores = executor(tasks)
 	else:
-		scores = [score_model(data, cfg) for cfg in cfg_list]
+		scores = [evaluate_model(data, cfg) for cfg in cfg_list]
 	# remove empty results
 	scores = [r for r in scores if r[1] != None]
 	# sort configs by error, asc
@@ -164,8 +164,9 @@ def sarimax(data, take_best=False):
 	cfg_list = sarima_configs(seasonal=[52])
     
 	if take_best == True:
-		cfg_list = [(2, 0, 0), (0, 1, 2, 52), 'c']
-		#cfg_list = [(0, 0, 0), (0, 0, 0, 0), 'c']
+		cfg_list = [(2, 0, 0), (0, 1, 0, 52), 'c']
+		#cfg_list = [(2, 0, 0), (0, 1, 2, 52), 'c'] #true
+		print(cfg_list)
 		score, scores = evaluate_model(data, cfg_list)
 		weeks = ["Wk" + str(i) for i in range(1,9)]
 		results = score

@@ -154,6 +154,7 @@ def exponential_smoothing(data, take_best=False):
 	
 	if take_best == True:
 		cfg_list = ['mul', False, 'add', 52, False, False]
+		print(cfg_list)
 		score, scores = evaluate_model(data, cfg_list)
 		weeks = ["Wk" + str(i) for i in range(1,9)]
 		results = score
@@ -172,7 +173,7 @@ def exponential_smoothing(data, take_best=False):
 	print('done')
 	# list top 3 configs
 	#print(scores[:3])
-	for cfg, error in scores[:3]:
+	for cfg, error in scores[:1]:
 		if take_best==True: break
 		print(cfg, error)
         
