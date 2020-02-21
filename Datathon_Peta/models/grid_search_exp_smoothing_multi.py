@@ -27,24 +27,30 @@ def split_dataset(data):
 
 
 
+from numpy import mean
+def mean_absolute_percentage_error(y_true, y_pred): 
+    return mean(abs((y_true - y_pred) / y_true)) * 100
+    
+
+
 # evaluate one or more weekly forecasts against expected values
 def evaluate_forecasts(actual, predicted):
 	scores = list()
 	# calculate an RMSE score for each day
 	for i in range(actual.shape[1]):
 		# calculate mse
-		predicted[:, i] = nan_to_num(mean(actual[:,i]))
-		mse = mean_squared_log_error(actual[:, i], predicted[:, i])
+		mape = mean_absolute_percentage_error(actual[:, i], predicted[:, i])
 		# calculate rmse
-		rmse = sqrt(mse)
+		#rmse = sqrt(mse)
 		# store
-		scores.append(rmse)
+		scores.append(mape)
 	# calculate overall RMSE
 	s = 0
 	for row in range(actual.shape[0]):
 		for col in range(actual.shape[1]):
-			s+= (( log(actual[row, col]) - log(predicted[row, col]))**2)
-	score = sqrt(s / (actual.shape[0] * actual.shape[1]))
+			(actual[row, col] - predicted[row, col])**2
+			s +=  mean_absolute_percentage_error(actual[row, col], predicted[row, col])
+	score =  (s / (actual.shape[0] * actual.shape[1]))
 	return score, scores
 
 

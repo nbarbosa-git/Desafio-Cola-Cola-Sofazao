@@ -55,9 +55,14 @@ def simple_forecast(history, config):
 	# median of last n values
 	return median(values)
 
+
+from numpy import mean
+def mean_absolute_percentage_error(y_true, y_pred): 
+    return mean(abs((y_true - y_pred) / y_true)) * 100
+
 # root mean squared error or rmse
 def measure_rmse(actual, predicted):
-	return sqrt(mean_squared_log_error(actual, predicted))
+	return mean_absolute_percentage_error(actual, predicted)
 
 # split a univariate dataset into train/test sets
 def train_test_split(data, n_test):
